@@ -6,6 +6,7 @@ from typing import (TYPE_CHECKING, Any, ClassVar, Dict, List, Mapping,
 
 import torch
 from transformers import PretrainedConfig
+from transformers import Qwen2VLConfig
 
 import vllm.envs as envs
 from vllm.logger import init_logger
@@ -1720,6 +1721,10 @@ def _get_and_verify_max_len(
         derived_max_model_len = default_max_len
 
     rope_scaling = getattr(hf_config, "rope_scaling", None)
+    # hotfix: transformers renames "mrope" -> "default", but qwen2vl layers still use "mrope"
+    if isinstance(hf_config, Qwen2VLConfig):
+        rope_scaling["type"] = "mrope"
+
     if rope_scaling is not None:
         if "type" in rope_scaling:
             rope_type = rope_scaling["type"]
